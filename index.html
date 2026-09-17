@@ -95,9 +95,12 @@
     </main>
 
     <script>
-      const storageKey = "senaste-val";
+      const storageKey = "val-historik";
+      const legacyStorageKey = "senaste-val";
+      const dayInMilliseconds = 24 * 60 * 60 * 1000;
       const status = document.querySelector("#status");
       let lastChoice = null;
+      let history = [];
 
       function elapsedText(time) {
         const minutes = (Date.now() - new Date(time).getTime()) / 60000;
@@ -139,11 +142,33 @@
         status.append("Senast: ", choice, ` · ${time}`, elapsed);
       }
 
-      function readLastChoice() {
+      function isRecent(entry) {
+        const time = new Date(entry?.time).getTime();
+        return (
+          (entry?.choice === "Vänster" || entry?.choice === "Höger") &&
+          Number.isFinite(time) &&
+          time > Date.now() - dayInMilliseconds
+        );
+      }
+
+      function saveHistory() {
+        localStorage.setItem(storageKey, JSON.stringify(history));
+      }
+
+      function readHistory() {
         try {
-          return JSON.parse(localStorage.getItem(storageKey));
+          const saved = JSON.parse(localStorage.getItem(storageKey));
+          const entries = Array.isArray(saved) ? saved.filter(isRecent) : [];
+
+          if (entries.length === 0) {
+            const legacyEntry = JSON.parse(localStorage.getItem(legacyStorageKey));
+            if (isRecent(legacyEntry)) entries.push(legacyEntry);
+          }
+
+          localStorage.removeItem(legacyStorageKey);
+          return entries;
         } catch {
-          return null;
+          return [];
         }
       }
 
@@ -154,14 +179,20 @@
             time: new Date().toISOString(),
           };
 
-          localStorage.setItem(storageKey, JSON.stringify(entry));
+          history = history.filter(isRecent);
+          history.push(entry);
+          saveHistory();
           showLastChoice(entry);
         });
       });
 
-      showLastChoice(readLastChoice());
+      history = readHistory();
+      saveHistory();
+      showLastChoice(history.at(-1));
       setInterval(() => {
-        if (lastChoice) showLastChoice(lastChoice);
+        history = history.filter(isRecent);
+        saveHistory();
+        showLastChoice(history.at(-1));
       }, 30000);
     </script>
   </body>
