@@ -175,7 +175,7 @@
 
         const time = new Intl.DateTimeFormat("sv-SE", {
           dateStyle: "medium",
-          timeStyle: "medium",
+          timeStyle: "short",
         }).format(new Date(entry.time));
 
         status.replaceChildren();
@@ -222,7 +222,6 @@
             month: "short",
             hour: "2-digit",
             minute: "2-digit",
-            second: "2-digit",
           }).format(new Date(entry.time));
 
           item.append(choice, time);
