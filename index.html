@@ -174,7 +174,6 @@
         }
 
         const time = new Intl.DateTimeFormat("sv-SE", {
-          dateStyle: "medium",
           timeStyle: "short",
         }).format(new Date(entry.time));
 
@@ -218,8 +217,6 @@
           choice.textContent = entry.choice;
           time.dateTime = entry.time;
           time.textContent = new Intl.DateTimeFormat("sv-SE", {
-            day: "numeric",
-            month: "short",
             hour: "2-digit",
             minute: "2-digit",
           }).format(new Date(entry.time));
